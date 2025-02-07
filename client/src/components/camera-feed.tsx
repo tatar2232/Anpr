@@ -35,8 +35,8 @@ export default function CameraFeed({ onCapture }: Props) {
       }
     } catch (error) {
       toast({
-        title: "Camera Error",
-        description: "Failed to access camera",
+        title: "Kamerafeil",
+        description: "Kunne ikke få tilgang til kamera",
         variant: "destructive",
       });
     }
@@ -53,19 +53,50 @@ export default function CameraFeed({ onCapture }: Props) {
   };
 
   const captureImage = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke ta bilde, prøv igjen",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const video = videoRef.current;
+    if (!video.videoWidth || !video.videoHeight) {
+      toast({
+        title: "Feil",
+        description: "Video er ikke klar ennå, vent litt og prøv igjen",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    ctx.drawImage(video, 0, 0);
-    const imageData = canvas.toDataURL("image/jpeg");
-    setPreview(imageData);
+    if (!ctx) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke behandle bildet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      ctx.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL("image/jpeg", 0.8);
+      setPreview(imageData);
+    } catch (error) {
+      toast({
+        title: "Feil",
+        description: "Kunne ikke ta bilde, prøv igjen",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAccept = () => {
@@ -87,7 +118,7 @@ export default function CameraFeed({ onCapture }: Props) {
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">Camera not started</p>
+            <p className="text-muted-foreground">Kamera er ikke startet</p>
           </div>
         )}
         <canvas ref={canvasRef} className="hidden" />
@@ -97,17 +128,17 @@ export default function CameraFeed({ onCapture }: Props) {
         {!stream ? (
           <Button onClick={startCamera}>
             <Camera className="mr-2 h-4 w-4" />
-            Start Camera
+            Start Kamera
           </Button>
         ) : (
           <>
             <Button variant="secondary" onClick={stopCamera}>
               <X className="mr-2 h-4 w-4" />
-              Stop Camera
+              Stopp Kamera
             </Button>
             <Button onClick={captureImage}>
               <Camera className="mr-2 h-4 w-4" />
-              Capture
+              Ta Bilde
             </Button>
           </>
         )}

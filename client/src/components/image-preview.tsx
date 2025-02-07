@@ -13,19 +13,19 @@ export default function ImagePreview({ imageData, onAccept, onReject }: Props) {
       <div className="aspect-video relative rounded-lg overflow-hidden">
         <img
           src={imageData}
-          alt="Preview"
+          alt="Forhåndsvisning"
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       <div className="flex justify-center gap-2">
         <Button variant="destructive" onClick={onReject}>
           <X className="mr-2 h-4 w-4" />
-          Reject
+          Forkast
         </Button>
         <Button onClick={onAccept}>
           <Check className="mr-2 h-4 w-4" />
-          Accept
+          Godta
         </Button>
       </div>
     </div>
