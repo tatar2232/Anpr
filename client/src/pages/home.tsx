@@ -3,18 +3,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CameraFeed from "@/components/camera-feed";
 import CaptureHistory from "@/components/capture-history";
+import WatchedPlates from "@/components/watched-plates";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import type { Capture } from "@shared/schema";
+import type { Capture, WatchedPlate } from "@shared/schema";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("live");
   const { toast } = useToast();
 
-  const { data: captures = [], isLoading } = useQuery<Capture[]>({
+  const { data: captures = [], isLoading: capturesLoading } = useQuery<Capture[]>({
     queryKey: ["/api/captures"],
+  });
+
+  const { data: watchedPlates = [], isLoading: platesLoading } = useQuery<WatchedPlate[]>({
+    queryKey: ["/api/watched-plates"],
   });
 
   const handleCapture = async (imageData: string) => {
@@ -49,6 +54,7 @@ export default function Home() {
             <TabsList className="mb-4">
               <TabsTrigger value="live">Live Camera</TabsTrigger>
               <TabsTrigger value="history">Capture History</TabsTrigger>
+              <TabsTrigger value="watch-list">Watch List</TabsTrigger>
             </TabsList>
 
             <TabsContent value="live">
@@ -56,7 +62,18 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="history">
-              <CaptureHistory captures={captures} isLoading={isLoading} />
+              <CaptureHistory 
+                captures={captures} 
+                isLoading={capturesLoading}
+                watchedPlates={watchedPlates}
+              />
+            </TabsContent>
+
+            <TabsContent value="watch-list">
+              <WatchedPlates 
+                plates={watchedPlates}
+                isLoading={platesLoading}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +22,15 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Capture } from "@shared/schema";
+import type { Capture, WatchedPlate } from "@shared/schema";
 
 interface Props {
   captures: Capture[];
   isLoading: boolean;
+  watchedPlates: WatchedPlate[];
 }
 
-export default function CaptureHistory({ captures, isLoading }: Props) {
+export default function CaptureHistory({ captures, isLoading, watchedPlates }: Props) {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -52,6 +53,13 @@ export default function CaptureHistory({ captures, isLoading }: Props) {
     } finally {
       setDeleteId(null);
     }
+  };
+
+  const isWatched = (plateNumber: string | null) => {
+    if (!plateNumber) return false;
+    return watchedPlates.some(
+      (plate) => plate.plateNumber.toLowerCase() === plateNumber.toLowerCase()
+    );
   };
 
   if (isLoading) {
@@ -92,7 +100,14 @@ export default function CaptureHistory({ captures, isLoading }: Props) {
                 <TableCell>
                   {new Date(capture.timestamp).toLocaleString()}
                 </TableCell>
-                <TableCell>{capture.plateNumber || "Pending"}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {capture.plateNumber || "Pending"}
+                    {isWatched(capture.plateNumber) && (
+                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{capture.confidence || "N/A"}</TableCell>
                 <TableCell>
                   <Button
