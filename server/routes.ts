@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCaptureSchema } from "@shared/schema";
+import { insertCaptureSchema, insertWatchedPlateSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
   app.get("/api/captures", async (_req, res) => {
@@ -28,6 +28,34 @@ export function registerRoutes(app: Express): Server {
     }
 
     await storage.deleteCapture(id);
+    res.status(204).end();
+  });
+
+  // New endpoints for watched plates
+  app.get("/api/watched-plates", async (_req, res) => {
+    const plates = await storage.getWatchedPlates();
+    res.json(plates);
+  });
+
+  app.post("/api/watched-plates", async (req, res) => {
+    const result = insertWatchedPlateSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid plate data" });
+      return;
+    }
+
+    const plate = await storage.addWatchedPlate(result.data);
+    res.json(plate);
+  });
+
+  app.delete("/api/watched-plates/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "Invalid plate ID" });
+      return;
+    }
+
+    await storage.removeWatchedPlate(id);
     res.status(204).end();
   });
 
