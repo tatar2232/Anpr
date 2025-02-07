@@ -37,13 +37,13 @@ export default function WatchedPlates({ plates, isLoading }: Props) {
       setNewPlate("");
       setDescription("");
       toast({
-        title: "Success",
-        description: "Plate number added to watch list",
+        title: "Suksess",
+        description: "Registreringsnummer lagt til i overvåkningslisten",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to add plate number",
+        title: "Feil",
+        description: error.message || "Kunne ikke legge til registreringsnummer",
         variant: "destructive",
       });
     }
@@ -54,13 +54,13 @@ export default function WatchedPlates({ plates, isLoading }: Props) {
       await apiRequest("DELETE", `/api/watched-plates/${id}`);
       await queryClient.invalidateQueries({ queryKey: ["/api/watched-plates"] });
       toast({
-        title: "Success",
-        description: "Plate number removed from watch list",
+        title: "Suksess",
+        description: "Registreringsnummer fjernet fra overvåkningslisten",
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to remove plate number",
+        title: "Feil",
+        description: "Kunne ikke fjerne registreringsnummer",
         variant: "destructive",
       });
     }
@@ -71,29 +71,29 @@ export default function WatchedPlates({ plates, isLoading }: Props) {
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            placeholder="Enter plate number"
+            placeholder="Skriv inn registreringsnummer"
             value={newPlate}
             onChange={(e) => setNewPlate(e.target.value)}
           />
         </div>
         <div className="flex-1">
           <Input
-            placeholder="Description (optional)"
+            placeholder="Beskrivelse (valgfritt)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <Button onClick={handleAdd}>Add to Watch List</Button>
+        <Button onClick={handleAdd}>Legg til i overvåkningsliste</Button>
       </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Plate Number</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Added</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead>Registreringsnummer</TableHead>
+              <TableHead>Beskrivelse</TableHead>
+              <TableHead>Lagt til</TableHead>
+              <TableHead className="w-[100px]">Handlinger</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,7 +108,7 @@ export default function WatchedPlates({ plates, isLoading }: Props) {
             ) : plates.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center">
-                  No plates in watch list
+                  Ingen registreringsnumre i overvåkningslisten
                 </TableCell>
               </TableRow>
             ) : (

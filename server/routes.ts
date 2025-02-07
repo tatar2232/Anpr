@@ -44,8 +44,19 @@ export function registerRoutes(app: Express): Server {
       return;
     }
 
-    const plate = await storage.addWatchedPlate(result.data);
-    res.json(plate);
+    try {
+      const plate = await storage.addWatchedPlate(result.data);
+      res.json(plate);
+    } catch (error: any) {
+      // Check for duplicate key violation
+      if (error.code === '23505') {
+        res.status(409).json({ 
+          message: `Registreringsnummer ${result.data.plateNumber} er allerede i overvåkningslisten` 
+        });
+        return;
+      }
+      throw error;
+    }
   });
 
   app.delete("/api/watched-plates/:id", async (req, res) => {
