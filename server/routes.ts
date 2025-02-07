@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCaptureSchema, insertWatchedPlateSchema } from "@shared/schema";
+import { detectLicensePlate } from "./services/anpr";
 
 export function registerRoutes(app: Express): Server {
   app.get("/api/captures", async (_req, res) => {
@@ -16,7 +17,23 @@ export function registerRoutes(app: Express): Server {
       return;
     }
 
+    // First create the capture
     const capture = await storage.createCapture(result.data);
+
+    // Then process it with ANPR
+    try {
+      const detection = await detectLicensePlate(result.data.imageData);
+      if (detection) {
+        await storage.updateCapture(capture.id, {
+          plateNumber: detection.plateNumber,
+          confidence: detection.confidence.toString()
+        });
+      }
+    } catch (error) {
+      console.error('ANPR processing failed:', error);
+      // We don't fail the request if ANPR fails
+    }
+
     res.json(capture);
   });
 
@@ -31,7 +48,6 @@ export function registerRoutes(app: Express): Server {
     res.status(204).end();
   });
 
-  // New endpoints for watched plates
   app.get("/api/watched-plates", async (_req, res) => {
     const plates = await storage.getWatchedPlates();
     res.json(plates);

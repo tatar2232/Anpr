@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['licence']
+
+roboflow:
+  workspace: anpr-8ds14
+  project: yolov8-anpr-glygz
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/anpr-8ds14/yolov8-anpr-glygz/dataset/1

@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 export interface IStorage {
   getCaptures(): Promise<Capture[]>;
   createCapture(capture: InsertCapture): Promise<Capture>;
+  updateCapture(id: number, updates: Partial<Capture>): Promise<void>;
   deleteCapture(id: number): Promise<void>;
   getWatchedPlates(): Promise<WatchedPlate[]>;
   addWatchedPlate(plate: InsertWatchedPlate): Promise<WatchedPlate>;
@@ -20,6 +21,12 @@ export class DatabaseStorage implements IStorage {
   async createCapture(insertCapture: InsertCapture): Promise<Capture> {
     const [capture] = await db.insert(captures).values(insertCapture).returning();
     return capture;
+  }
+
+  async updateCapture(id: number, updates: Partial<Capture>): Promise<void> {
+    await db.update(captures)
+      .set(updates)
+      .where(eq(captures.id, id));
   }
 
   async deleteCapture(id: number): Promise<void> {
