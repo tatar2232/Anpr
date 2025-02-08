@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCaptureSchema, insertWatchedPlateSchema } from "@shared/schema";
 import { detectLicensePlate } from "./services/anpr";
+import { resizeImage } from "./services/image";
 
 export function registerRoutes(app: Express): Server {
   app.get("/api/captures", async (_req, res) => {
@@ -17,24 +18,30 @@ export function registerRoutes(app: Express): Server {
       return;
     }
 
-    // First create the capture
-    const capture = await storage.createCapture(result.data);
-
-    // Then process it with ANPR
     try {
-      const detection = await detectLicensePlate(result.data.imageData);
+      // Resize the image before saving
+      const resizedImageData = await resizeImage(result.data.imageData, 50);
+
+      // First create the capture with resized image
+      const capture = await storage.createCapture({
+        ...result.data,
+        imageData: resizedImageData
+      });
+
+      // Then process it with ANPR
+      const detection = await detectLicensePlate(resizedImageData);
       if (detection) {
         await storage.updateCapture(capture.id, {
           plateNumber: detection.plateNumber,
           confidence: detection.confidence.toString()
         });
       }
-    } catch (error) {
-      console.error('ANPR processing failed:', error);
-      // We don't fail the request if ANPR fails
-    }
 
-    res.json(capture);
+      res.json(capture);
+    } catch (error) {
+      console.error('Failed to process capture:', error);
+      res.status(500).json({ message: "Failed to process capture" });
+    }
   });
 
   app.delete("/api/captures/:id", async (req, res) => {
